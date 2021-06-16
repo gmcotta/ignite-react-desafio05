@@ -1,5 +1,7 @@
 import { GetStaticProps } from 'next';
+import Link from 'next/link';
 import { FiCalendar, FiUser } from 'react-icons/fi';
+import Prismic from '@prismicio/client';
 
 import { getPrismicClient } from '../services/prismic';
 
@@ -25,50 +27,49 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-export default function Home() {
+export default function Home({ postsPagination }: HomeProps) {
   return (
     <main className={styles.homeContainer}>
-      <section className={styles.homePost}>
-        <h2>Como utilizar Hooks</h2>
-        <p>Pensando em sincronização em vez de ciclos de vida.</p>
-        <div>
-          <div>
-            <FiCalendar size={20} />
-            15 Mar 2021
-          </div>
-          <div>
-            <FiUser size={20} />
-            Joseph Oliveira
-          </div>
-        </div>
-      </section>
-      <section className={styles.homePost}>
-        <h2>Criando um app CRA do zero</h2>
-        <p>
-          Tudo sobre como criar a sua primeira aplicação utilizando Create React
-          App.
-        </p>
-        <div>
-          <div>
-            <FiCalendar size={20} />
-            19 Abr 2021
-          </div>
-          <div>
-            <FiUser size={20} />
-            Danilo Vieira
-          </div>
-        </div>
-      </section>
-      <button type="button" className={styles.homeButton}>
-        Carregar mais post
-      </button>
+      {postsPagination.results.map(result => (
+        <section key={result.uid} className={styles.homePost}>
+          <Link href={`/post/${result.uid}`}>
+            <a>
+              <h2>{result.data.title}</h2>
+              <p>{result.data.subtitle}</p>
+              <div>
+                <div>
+                  <FiCalendar size={20} />
+                  {result.first_publication_date}
+                </div>
+                <div>
+                  <FiUser size={20} />
+                  {result.data.author}
+                </div>
+              </div>
+            </a>
+          </Link>
+        </section>
+      ))}
+      {postsPagination.next_page && (
+        <button type="button" className={styles.homeButton}>
+          Carregar mais post
+        </button>
+      )}
     </main>
   );
 }
 
-// export const getStaticProps = async () => {
-//   // const prismic = getPrismicClient();
-//   // const postsResponse = await prismic.query(TODO);
+export const getStaticProps: GetStaticProps = async () => {
+  const prismic = getPrismicClient();
+  const postsResponse = await prismic.query(
+    [Prismic.predicates.at('document.type', 'posts')],
+    {
+      pageSize: 1,
+      fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
+    }
+  );
 
-//   // TODO
-// };
+  return {
+    props: { postsPagination: postsResponse },
+  };
+};
