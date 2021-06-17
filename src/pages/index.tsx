@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { GetStaticProps } from 'next';
 import Link from 'next/link';
 import { FiCalendar, FiUser } from 'react-icons/fi';
 import Prismic from '@prismicio/client';
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 
 import { getPrismicClient } from '../services/prismic';
 
@@ -28,9 +31,26 @@ interface HomeProps {
 }
 
 export default function Home({ postsPagination }: HomeProps) {
+  const [postResults, setPostResults] = useState(postsPagination.results);
+  const [nextPage, setNextPage] = useState(postsPagination.next_page);
+
+  function formatDate(dateInString: string): string {
+    const dateInDate = new Date(dateInString);
+    const formattedDate = format(dateInDate, 'dd MMM yyy', {
+      locale: ptBR,
+    });
+    return formattedDate;
+  }
+
+  async function fetchNextPage(): Promise<void> {
+    const response = await fetch(nextPage).then(res => res.json());
+    setNextPage(response.next_page);
+    setPostResults([...postResults, ...response.results]);
+  }
+
   return (
     <main className={styles.homeContainer}>
-      {postsPagination.results.map(result => (
+      {postResults.map(result => (
         <section key={result.uid} className={styles.homePost}>
           <Link href={`/post/${result.uid}`}>
             <a>
@@ -39,7 +59,7 @@ export default function Home({ postsPagination }: HomeProps) {
               <div>
                 <div>
                   <FiCalendar size={20} />
-                  {result.first_publication_date}
+                  {formatDate(result.first_publication_date)}
                 </div>
                 <div>
                   <FiUser size={20} />
@@ -50,8 +70,12 @@ export default function Home({ postsPagination }: HomeProps) {
           </Link>
         </section>
       ))}
-      {postsPagination.next_page && (
-        <button type="button" className={styles.homeButton}>
+      {nextPage && (
+        <button
+          onClick={fetchNextPage}
+          type="button"
+          className={styles.homeButton}
+        >
           Carregar mais post
         </button>
       )}
