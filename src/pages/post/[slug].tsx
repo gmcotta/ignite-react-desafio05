@@ -1,13 +1,13 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import { RichText } from 'prismic-dom';
+import Prismic from '@prismicio/client';
 import { Fragment, ReactElement } from 'react';
 import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 
 import { getPrismicClient } from '../../services/prismic';
-
-import commonStyles from '../../styles/common.module.scss';
 import { formatDate } from '../../utils/formatDate';
+
 import styles from './post.module.scss';
 
 interface Post {
@@ -96,16 +96,22 @@ export default function Post({ post }: PostProps): ReactElement {
   );
 }
 
-// export const getStaticPaths = async () => {
-//   const prismic = getPrismicClient();
-//   const posts = await prismic.query(TODO);
-
-//   // TODO
-// };
-
 export const getStaticPaths: GetStaticPaths = async () => {
+  const prismic = getPrismicClient();
+  const posts = await prismic.query(
+    [Prismic.predicates.at('document.type', 'posts')],
+    {
+      fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
+    }
+  );
+  const paths = posts.results.map(result => ({
+    params: {
+      slug: result.uid,
+    },
+  }));
+
   return {
-    paths: [],
+    paths,
     fallback: true,
   };
 };
