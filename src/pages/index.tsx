@@ -1,15 +1,14 @@
-import { useState } from 'react';
+import { ReactElement, useState } from 'react';
 import { GetStaticProps } from 'next';
 import Link from 'next/link';
 import { FiCalendar, FiUser } from 'react-icons/fi';
 import Prismic from '@prismicio/client';
-import { format } from 'date-fns';
-import ptBR from 'date-fns/locale/pt-BR';
 
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import { formatDate } from '../utils/formatDate';
 
 interface Post {
   uid?: string;
@@ -30,17 +29,9 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-export default function Home({ postsPagination }: HomeProps) {
+export default function Home({ postsPagination }: HomeProps): ReactElement {
   const [postResults, setPostResults] = useState(postsPagination.results);
   const [nextPage, setNextPage] = useState(postsPagination.next_page);
-
-  function formatDate(dateInString: string): string {
-    const dateInDate = new Date(dateInString);
-    const formattedDate = format(dateInDate, 'dd MMM yyy', {
-      locale: ptBR,
-    });
-    return formattedDate;
-  }
 
   async function fetchNextPage(): Promise<void> {
     const response = await fetch(nextPage).then(res => res.json());
