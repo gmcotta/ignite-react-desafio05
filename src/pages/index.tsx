@@ -5,10 +5,9 @@ import { FiCalendar, FiUser } from 'react-icons/fi';
 import Prismic from '@prismicio/client';
 
 import { getPrismicClient } from '../services/prismic';
-
-import commonStyles from '../styles/common.module.scss';
-import styles from './home.module.scss';
 import { formatDate } from '../utils/formatDate';
+
+import styles from './home.module.scss';
 
 interface Post {
   uid?: string;
@@ -67,7 +66,7 @@ export default function Home({ postsPagination }: HomeProps): ReactElement {
           type="button"
           className={styles.homeButton}
         >
-          Carregar mais post
+          Carregar mais posts
         </button>
       )}
     </main>
